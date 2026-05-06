@@ -1,4 +1,5 @@
 ---
+import '../styles/trading.css';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import BackgroundCanvas from '../components/BackgroundCanvas.astro';
 import TradingCard from '../components/TradingCard.astro';
@@ -90,44 +91,4 @@ import Editor from '../components/Editor.astro';
 
 </BaseLayout>
 
-<style>
-  .scene {
-    position: relative; z-index: 1;
-    min-height: 100vh;
-    display: flex; flex-direction: column;
-    align-items: center;
-    padding: 40px 24px 80px;
-    gap: 32px;
-  }
-  .header { text-align: center; }
-  .header h1 {
-    font-size: clamp(22px, 4vw, 36px);
-    font-weight: 700; letter-spacing: -0.04em;
-    background: linear-gradient(135deg, #fff 30%, rgba(255,255,255,0.45));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .header p {
-    font-size: 13px; color: rgba(255,255,255,0.4);
-    margin-top: 6px; letter-spacing: 0.04em;
-  }
-  .dashboard {
-    display: flex; gap: 20px;
-    flex-wrap: wrap; justify-content: center;
-    align-items: flex-start;
-  }
-  .home {
-    position: fixed; bottom: 16px; left: 16px;
-    font-size: 14px; color: rgba(255,255,255,0.6);
-    text-decoration: none; z-index: 10;
-    padding: 4px 8px; border-radius: 4px;
-    background-color: rgba(0,0,0,0.3);
-    transition: background-color 0.3s, color 0.3s;
-  }
-  .home:hover {
-    background-color: rgba(0,0,0,0.6);
-    color: rgba(255,255,255,0.9);
-  }
-</style>
-<a href="/" class="home">HOME</a>
+<a href="/" class="home" onclick="sessionStorage.removeItem('tradingData')">HOME</a>

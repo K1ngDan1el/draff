@@ -890,11 +890,26 @@ function setBgTheme(name) {
 
 // Card selection
 let selectedCard = 0;
+let storedData = null;
+try {
+  const raw = sessionStorage.getItem('tradingData');
+  if (raw) storedData = JSON.parse(raw);
+} catch(e) {}
+
 const cardData = [
-  { title: 'GANANCIAS', amount: '$41,225.00', badge: '41 operaciones' },
-  { title: 'PÉRDIDAS',  amount: '$60,273.00', badge: '599 operaciones' },
-  { title: 'PROFIT NETO', amount: '-$19,048.00', badge: 'negativo' },
+  { title: 'GANANCIAS', amount: storedData ? storedData.ganancias.amount : '$41,225.00', badge: storedData ? storedData.ganancias.badge : '41 operaciones' },
+  { title: 'PÉRDIDAS',  amount: storedData ? storedData.perdidas.amount : '$60,273.00', badge: storedData ? storedData.perdidas.badge : '599 operaciones' },
+  { title: 'PROFIT NETO', amount: storedData ? storedData.neto.amount : '-$19,048.00', badge: storedData ? storedData.neto.badge : 'negativo' },
 ];
+
+if (storedData) {
+  cardData.forEach((d, i) => {
+    const elA = document.getElementById('amount-' + i);
+    const elB = document.getElementById('badge-' + i);
+    if (elA) elA.textContent = d.amount;
+    if (elB) elB.textContent = d.badge;
+  });
+}
 const colorMap = {
   green:  { cls: 'card-green', rgb: '0,245,139' },
   red:    { cls: 'card-red',   rgb: '255,59,94' },
@@ -1034,5 +1049,20 @@ window.addEventListener('load', () => {
   updateLayout();
 });
 </script>
+<style>
+  .home {
+    position: fixed; bottom: 16px; left: 16px;
+    font-size: 14px; color: rgba(255,255,255,0.6);
+    text-decoration: none; z-index: 10;
+    padding: 4px 8px; border-radius: 4px;
+    background-color: rgba(0,0,0,0.3);
+    transition: background-color 0.3s, color 0.3s;
+  }
+  .home:hover {
+    background-color: rgba(0,0,0,0.6);
+    color: rgba(255,255,255,0.9);
+  }
+</style>
+<a href="/" class="home" onclick="sessionStorage.removeItem('tradingData')">HOME</a>
 </body>
 </html>
