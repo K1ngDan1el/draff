@@ -75,14 +75,14 @@ function buildTable() {
   tbody!.innerHTML=html;
 }
 const CD = {
-  responsive:true, animation:{duration:400},
+  responsive:true, animation:{duration:600, easing:'easeOutQuart' as const},
   plugins:{
-    legend:{labels:{color:'#94a3b8',font:{family:'JetBrains Mono',size:10},boxWidth:12}},
-    tooltip:{backgroundColor:'#0d1117',borderColor:'#1e293b',borderWidth:1,titleColor:'#94a3b8',bodyColor:'#e2e8f0'}
+    legend:{labels:{color:'rgba(255,255,255,0.45)',font:{family:'Inter, sans-serif',size:11},boxWidth:12,padding:16}},
+    tooltip:{backgroundColor:'rgba(12,15,20,0.9)',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,titleColor:'rgba(255,255,255,0.5)',bodyColor:'#e2e8f0',cornerRadius:12,padding:12,bodyFont:{family:'Space Grotesk, monospace',size:12},titleFont:{family:'Inter, sans-serif',size:10}}
   },
   scales:{
-    x:{ticks:{color:'#334155',font:{size:9},maxTicksLimit:20},grid:{color:'#111827'}},
-    y:{ticks:{color:'#334155',font:{size:9},callback:(v: number)=>'$'+Math.abs(v).toLocaleString()},grid:{color:'#111827'}}
+    x:{ticks:{color:'rgba(255,255,255,0.2)',font:{family:'Inter, sans-serif',size:9},maxTicksLimit:20},grid:{color:'rgba(255,255,255,0.04)'}},
+    y:{ticks:{color:'rgba(255,255,255,0.2)',font:{family:'Inter, sans-serif',size:9},callback:(v: number)=>'$'+Math.abs(v).toLocaleString()},grid:{color:'rgba(255,255,255,0.04)'}}
   }
 };
 function dc(k: string){if(charts[k]){charts[k].destroy();delete charts[k];}}
@@ -99,8 +99,8 @@ function buildChartLinea(){
     dG.push(aG); dP.push(aP);
   }
   charts.linea=new (window as any).Chart(ctx,{type:'line',data:{labels,datasets:[
-    {label:'Ganancias acumuladas',data:dG,borderColor:'#34d399',backgroundColor:'rgba(52,211,153,0.08)',pointRadius:0,borderWidth:2,tension:0.3,fill:true},
-    {label:'Pérdidas acumuladas',data:dP,borderColor:'#f87171',backgroundColor:'rgba(248,113,113,0.08)',pointRadius:0,borderWidth:2,tension:0.3,fill:true}
+    {label:'Ganancias acumuladas',data:dG,borderColor:'#00f58b',backgroundColor:'rgba(0,245,139,0.06)',pointRadius:0,borderWidth:2,tension:0.4,fill:true},
+    {label:'Pérdidas acumuladas',data:dP,borderColor:'#ff3b5e',backgroundColor:'rgba(255,59,94,0.06)',pointRadius:0,borderWidth:2,tension:0.4,fill:true}
   ]},options:{...CD,interaction:{mode:'index',intersect:false}}});
 }
 function buildChartBarras(){
@@ -122,8 +122,8 @@ function buildChartBarras(){
     cG.push(ganancias.filter((v: number)=>v>lo&&v<=hi).length);
   }
   charts.barras=new (window as any).Chart(ctx,{type:'bar',data:{labels,datasets:[
-    {label:'Pérdidas',data:cP,backgroundColor:'rgba(248,113,113,0.75)',borderColor:'#f87171',borderWidth:1,borderRadius:4},
-    {label:'Ganancias',data:cG,backgroundColor:'rgba(52,211,153,0.75)',borderColor:'#34d399',borderWidth:1,borderRadius:4}
+    {label:'Pérdidas',data:cP,backgroundColor:'rgba(255,59,94,0.6)',borderColor:'#ff3b5e',borderWidth:1,borderRadius:6},
+    {label:'Ganancias',data:cG,backgroundColor:'rgba(0,245,139,0.6)',borderColor:'#00f58b',borderWidth:1,borderRadius:6}
   ]},options:{...CD,interaction:{mode:'index',intersect:false},
     plugins:{...CD.plugins,tooltip:{...CD.plugins.tooltip,callbacks:{label:(ctx: any)=>` ${ctx.dataset.label}: ${ctx.parsed.y} ops`}}},
     scales:{x:{...CD.scales.x},y:{...CD.scales.y,ticks:{color:'#334155',font:{size:9},callback:(v: number)=>v+' ops'},title:{display:true,text:'Nº de operaciones',color:'#475569',font:{size:9}}}}}});
@@ -134,8 +134,8 @@ function buildChartAmbas(){
   const maxShow=Math.min(100,Math.max(perdidas.length,ganancias.length));
   const labels=Array.from({length:maxShow},(_,i)=>'#'+(i+1));
   charts.ambas=new (window as any).Chart(ctx,{type:'bar',data:{labels,datasets:[
-    {label:'Ganancias',data:ganancias.slice(0,maxShow),backgroundColor:'rgba(52,211,153,0.7)',borderColor:'#34d399',borderWidth:1,borderRadius:3},
-    {label:'Pérdidas',data:perdidas.slice(0,maxShow).map((v: number)=>-v),backgroundColor:'rgba(248,113,113,0.7)',borderColor:'#f87171',borderWidth:1,borderRadius:3}
+    {label:'Ganancias',data:ganancias.slice(0,maxShow),backgroundColor:'rgba(0,245,139,0.6)',borderColor:'#00f58b',borderWidth:1,borderRadius:6},
+    {label:'Pérdidas',data:perdidas.slice(0,maxShow).map((v: number)=>-v),backgroundColor:'rgba(255,59,94,0.6)',borderColor:'#ff3b5e',borderWidth:1,borderRadius:6}
   ]},options:{...CD,interaction:{mode:'index',intersect:false},
     plugins:{...CD.plugins,tooltip:{...CD.plugins.tooltip,callbacks:{label:(ctx: any)=>` ${ctx.dataset.label}: $${Math.abs(ctx.parsed.y).toLocaleString('es-MX',{minimumFractionDigits:2})}`}}}}});
 }

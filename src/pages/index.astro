@@ -4,75 +4,115 @@ import '../styles/dashboard-pst.css';
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard PST</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dashboard PST — Análisis de pérdidas y ganancias con visualización interactiva">
+  <title>Dashboard PST</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-<header>
-  <h1>▦ Dashboard <span>PST</span></h1>
-  <p id="headerSub">Pérdidas y Ganancias · sube un archivo para comenzar</p>
-</header>
-<div class="wrap">
-  <div class="upload-zone" id="uploadZone">
-    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
-    <div class="upload-icon">⬆</div>
-    <div class="upload-title">Sube tu archivo Excel o CSV</div>
-    <div class="upload-sub">Arrastra aquí o haz clic · columnas: PÉRDIDAS y GANANCIAS</div>
-    <div class="upload-status" id="uploadStatus"></div>
-  </div>
-  <div class="kpis">
-    <div class="card green">
-      <div class="card-label">Ganancias</div>
-      <div class="card-value" id="kpiGanancias">—</div>
-      <div class="card-sub" id="kpiGananciasOps">— operaciones</div>
-      <div class="card-icon">+</div>
-    </div>
-    <div class="card red">
-      <div class="card-label">Pérdidas</div>
-      <div class="card-value" id="kpiPerdidas">—</div>
-      <div class="card-sub" id="kpiPerdidasOps">— operaciones</div>
-      <div class="card-icon">−</div>
-    </div>
-    <div class="card negative" id="kpiNetCard">
-      <div class="card-label">Profit Neto</div>
-      <div class="card-value" id="kpiNeto">—</div>
-      <div class="card-sub" id="kpiNetoSub">—</div>
-      <div class="card-icon">Σ</div>
-    </div>
-  </div>
-  <div class="panel">
-    <div class="chart-tabs">
-      <button class="chart-tab active" data-tab="linea">Evolución acumulada</button>
-      <button class="chart-tab" data-tab="barras">Distribución por rango</button>
-      <button class="chart-tab" data-tab="ambas">Por operación</button>
-    </div>
-    <div class="chart-panel active" id="tab-linea"><canvas id="chartLinea"></canvas></div>
-    <div class="chart-panel" id="tab-barras"><canvas id="chartBarras"></canvas></div>
-    <div class="chart-panel" id="tab-ambas"><canvas id="chartAmbas"></canvas></div>
-    <div class="stats-row">
-      <div class="stat"><div class="stat-label">Máx. ganancia</div><div class="stat-val val-green" id="statMaxG">—</div></div>
-      <div class="stat"><div class="stat-label">Prom. ganancia</div><div class="stat-val val-green" id="statPromG">—</div></div>
-      <div class="stat"><div class="stat-label">Máx. pérdida</div><div class="stat-val val-red" id="statMaxP">—</div></div>
-      <div class="stat"><div class="stat-label">Prom. pérdida</div><div class="stat-val val-red" id="statPromP">—</div></div>
-    </div>
-  </div>
-  <div class="panel">
-    <div class="panel-header"><span class="panel-title" id="tableTitle">Datos</span></div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>#</th><th>PÉRDIDAS</th><th>GANANCIAS</th></tr></thead>
-        <tbody id="tableBody">
-          <tr><td colspan="3" style="color:var(--muted);text-align:center;padding:32px">Sube un archivo Excel para ver los datos aquí</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-<script src="../scripts/dashboard-pst.ts"></script>
 
-<a href="/trading" class="insta">FRONT</a>
+  <header>
+    <h1>Dashboard <span>PST</span></h1>
+    <p id="headerSub">Pérdidas y Ganancias · sube un archivo para comenzar</p>
+  </header>
+
+  <div class="wrap">
+
+    <!-- Upload Zone -->
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+      <div class="upload-icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(0,229,255,0.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </div>
+      <div class="upload-title">Sube tu archivo Excel o CSV</div>
+      <div class="upload-sub">Arrastra aquí o haz clic · columnas: PÉRDIDAS y GANANCIAS</div>
+      <div class="upload-status" id="uploadStatus"></div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpis">
+      <div class="card green">
+        <div class="card-highlight"></div>
+        <div class="card-glow-effect"></div>
+        <div class="card-label">Ganancias</div>
+        <div class="card-value" id="kpiGanancias">—</div>
+        <div class="card-sub" id="kpiGananciasOps">— operaciones</div>
+        <div class="card-icon">↑</div>
+      </div>
+      <div class="card red">
+        <div class="card-highlight"></div>
+        <div class="card-glow-effect"></div>
+        <div class="card-label">Pérdidas</div>
+        <div class="card-value" id="kpiPerdidas">—</div>
+        <div class="card-sub" id="kpiPerdidasOps">— operaciones</div>
+        <div class="card-icon">↓</div>
+      </div>
+      <div class="card negative" id="kpiNetCard">
+        <div class="card-highlight"></div>
+        <div class="card-glow-effect"></div>
+        <div class="card-label">Profit Neto</div>
+        <div class="card-value" id="kpiNeto">—</div>
+        <div class="card-sub" id="kpiNetoSub">—</div>
+        <div class="card-icon">Σ</div>
+      </div>
+    </div>
+
+    <!-- Charts Panel -->
+    <div class="panel">
+      <div class="chart-tabs">
+        <button class="chart-tab active" data-tab="linea">Evolución acumulada</button>
+        <button class="chart-tab" data-tab="barras">Distribución por rango</button>
+        <button class="chart-tab" data-tab="ambas">Por operación</button>
+      </div>
+      <div class="chart-panel active" id="tab-linea"><canvas id="chartLinea"></canvas></div>
+      <div class="chart-panel" id="tab-barras"><canvas id="chartBarras"></canvas></div>
+      <div class="chart-panel" id="tab-ambas"><canvas id="chartAmbas"></canvas></div>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-label">Máx. ganancia</div>
+          <div class="stat-val val-green" id="statMaxG">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Prom. ganancia</div>
+          <div class="stat-val val-green" id="statPromG">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Máx. pérdida</div>
+          <div class="stat-val val-red" id="statMaxP">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Prom. pérdida</div>
+          <div class="stat-val val-red" id="statPromP">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Table Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title" id="tableTitle">Datos</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>PÉRDIDAS</th><th>GANANCIAS</th></tr></thead>
+          <tbody id="tableBody">
+            <tr><td colspan="3" style="color:var(--muted);text-align:center;padding:40px;font-size:13px;">Sube un archivo Excel para ver los datos aquí</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="../scripts/dashboard-pst.ts"></script>
+
+  <a href="/trading" class="insta"><span>FRONT</span></a>
+
 </body>
 </html>
