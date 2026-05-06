@@ -36,33 +36,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Ambient background glow ── */
-body::before {
-  content: '';
-  position: fixed;
-  top: -30%; left: -20%;
-  width: 70%; height: 70%;
-  background: radial-gradient(circle, rgba(0,229,255,0.06) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-  animation: ambientDrift 18s ease-in-out infinite alternate;
-}
-body::after {
-  content: '';
-  position: fixed;
-  bottom: -30%; right: -20%;
-  width: 60%; height: 60%;
-  background: radial-gradient(circle, rgba(0,245,139,0.05) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-  animation: ambientDrift 22s ease-in-out infinite alternate-reverse;
-}
-
-@keyframes ambientDrift {
-  0%   { transform: translate(0, 0) scale(1); }
-  50%  { transform: translate(5%, 3%) scale(1.1); }
-  100% { transform: translate(-3%, -5%) scale(0.95); }
-}
+/* ── Ambient background removed (using PSTBackground Canvas) ── */
 
 /* ── Header ── */
 header {
@@ -142,6 +116,7 @@ header p {
     rgba(255,255,255,0.1) 100%
   );
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   z-index: 1;
@@ -273,6 +248,7 @@ header p {
     rgba(var(--card-color), 0.18) 100%
   );
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   z-index: 1;
@@ -406,6 +382,7 @@ header p {
     rgba(255,255,255,0.08) 100%
   );
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   z-index: 1;
@@ -603,6 +580,7 @@ tr:hover td {
     rgba(0,229,255,0.3) 100%
   );
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   z-index: 1;
