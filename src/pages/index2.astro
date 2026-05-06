@@ -1,0 +1,133 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import BackgroundCanvas from '../components/BackgroundCanvas.astro';
+import TradingCard from '../components/TradingCard.astro';
+import Editor from '../components/Editor.astro';
+---
+
+<BaseLayout title="Trading Dashboard">
+
+  <!-- SVG global filters -->
+  <svg style="position:absolute;width:0;height:0" aria-hidden="true">
+    <defs>
+      <filter id="glow-g" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur stdDeviation="2.5" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="glow-r" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur stdDeviation="2.5" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="glow-dim" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur stdDeviation="2.5" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+  </svg>
+
+  <BackgroundCanvas />
+
+  <div class="scene">
+    <div class="header">
+      <h1 id="dashboard-title">Trading Dashboard</h1>
+      <p id="dashboard-sub">ANÁLISIS DE RENDIMIENTO · Q4 2024</p>
+    </div>
+
+    <div class="dashboard" id="dashboard">
+
+      <TradingCard
+        id="card-0"
+        idx={0}
+        colorClass="card-green"
+        iconStroke="rgb(0,245,139)"
+        iconPath={`<path d="M22 7L13.5 15.5L8.5 10.5L2 17" stroke-linecap="round" stroke-linejoin="round"/>
+                   <polyline points="16 7 22 7 22 13" stroke-linecap="round" stroke-linejoin="round"/>`}
+        label="GANANCIAS"
+        amount="$41,225.00"
+        badge="41 operaciones"
+        gradientId="fade-g"
+        chartFill="M0 50 L20 48 L40 50 L60 45 L80 48 L100 35 L120 45 L140 38 L160 42 L180 35 L200 38 L220 35 L240 25 L260 28 L280 15 L300 5 L300 62 L0 62 Z"
+        chartPath="M0 50 L20 48 L40 50 L60 45 L80 48 L100 35 L120 45 L140 38 L160 42 L180 35 L200 38 L220 35 L240 25 L260 28 L280 15 L300 5"
+        filterId="glow-g"
+      />
+
+      <TradingCard
+        id="card-1"
+        idx={1}
+        colorClass="card-red"
+        iconStroke="rgb(255,59,94)"
+        iconPath={`<path d="M22 17L13.5 8.5L8.5 13.5L2 7" stroke-linecap="round" stroke-linejoin="round"/>
+                   <polyline points="16 17 22 17 22 11" stroke-linecap="round" stroke-linejoin="round"/>`}
+        label="PÉRDIDAS"
+        amount="$60,273.00"
+        badge="599 operaciones"
+        gradientId="fade-r"
+        chartFill="M0 45 L20 45 L40 48 L60 47 L80 47 L100 48 L120 40 L140 45 L160 35 L180 38 L200 28 L220 32 L240 5 L260 20 L280 35 L300 45 L300 62 L0 62 Z"
+        chartPath="M0 45 L20 45 L40 48 L60 47 L80 47 L100 48 L120 40 L140 45 L160 35 L180 38 L200 28 L220 32 L240 5 L260 20 L280 35 L300 45"
+        filterId="glow-r"
+      />
+
+      <TradingCard
+        id="card-2"
+        idx={2}
+        colorClass="card-dark"
+        iconStroke="rgb(255,143,143)"
+        iconPath={`<path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/>
+                   <path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/>
+                   <path d="M18 12a2 2 0 0 0-2 2 2 2 0 0 0 2 2h2v-4h-2z"/>`}
+        label="PROFIT NETO"
+        amount="-$19,048.00"
+        badge="negativo"
+        chartPath="M0 40 L40 40 L80 38 L120 42 L160 45 L200 48 L240 50 L300 55"
+        filterId="glow-dim"
+        showSigma={true}
+      />
+
+    </div>
+  </div>
+
+  <Editor />
+
+</BaseLayout>
+
+<style>
+  .scene {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center;
+    padding: 40px 24px 80px;
+    gap: 32px;
+  }
+  .header { text-align: center; }
+  .header h1 {
+    font-size: clamp(22px, 4vw, 36px);
+    font-weight: 700; letter-spacing: -0.04em;
+    background: linear-gradient(135deg, #fff 30%, rgba(255,255,255,0.45));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header p {
+    font-size: 13px; color: rgba(255,255,255,0.4);
+    margin-top: 6px; letter-spacing: 0.04em;
+  }
+  .dashboard {
+    display: flex; gap: 20px;
+    flex-wrap: wrap; justify-content: center;
+    align-items: flex-start;
+  }
+  .home {
+    position: fixed; bottom: 16px; left: 16px;
+    font-size: 14px; color: rgba(255,255,255,0.6);
+    text-decoration: none; z-index: 10;
+    padding: 4px 8px; border-radius: 4px;
+    background-color: rgba(0,0,0,0.3);
+    transition: background-color 0.3s, color 0.3s;
+  }
+  .home:hover {
+    background-color: rgba(0,0,0,0.6);
+    color: rgba(255,255,255,0.9);
+  }
+</style>
+<a href="/" class="home">HOME</a>

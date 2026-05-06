@@ -1,0 +1,194 @@
+---
+interface Props {
+  id: string;
+  idx: number;
+  colorClass: string;
+  iconStroke: string;
+  iconPath: string;
+  label: string;
+  amount: string;
+  badge: string;
+  chartPath: string;
+  chartFill?: string;
+  filterId?: string;
+  gradientId?: string;
+  showSigma?: boolean;
+}
+
+const {
+  id,
+  idx,
+  colorClass,
+  iconStroke,
+  iconPath,
+  label,
+  amount,
+  badge,
+  chartPath,
+  chartFill,
+  filterId = 'glow-g',
+  gradientId,
+  showSigma = false,
+} = Astro.props;
+---
+
+<div class={`card ${colorClass}`} id={id} data-idx={idx}>
+  <div class="card-glass"></div>
+  <div class="card-glow"></div>
+  {showSigma && <div class="sigma">Σ</div>}
+  <div class="card-content">
+    <div class="icon-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke={iconStroke} stroke-width="2" set:html={iconPath} />
+    </div>
+    <div class="card-label" id={`label-${idx}`}>{label}</div>
+    <div class="card-amount" id={`amount-${idx}`}>{amount}</div>
+    <div class="card-badge" id={`badge-${idx}`}>{badge}</div>
+    <div class="chart-wrap">
+      <svg viewBox="0 0 300 62" preserveAspectRatio="none">
+        {gradientId && (
+          <defs>
+            <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color={iconStroke} stop-opacity="0.2" />
+              <stop offset="100%" stop-color={iconStroke} stop-opacity="0" />
+            </linearGradient>
+          </defs>
+        )}
+        {chartFill && gradientId && (
+          <path d={chartFill} fill={`url(#${gradientId})`} stroke="none" />
+        )}
+        <path
+          d={chartPath}
+          fill="none"
+          stroke={iconStroke}
+          stroke-width="2"
+          filter={`url(#${filterId})`}
+        />
+      </svg>
+    </div>
+  </div>
+</div>
+
+<style>
+  .card {
+    width: var(--panel-w);
+    border-radius: var(--card-radius);
+    padding: 26px;
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+    transition: transform 0.4s cubic-bezier(.23,1,.32,1);
+    --card-color: 255,255,255;
+  }
+  .card:hover { transform: translateY(-6px) scale(1.01); }
+
+  .card-glass {
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    background: rgba(var(--card-color), var(--glass-opacity));
+    backdrop-filter: blur(var(--blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+  }
+  .card::before {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      145deg,
+      rgba(var(--card-color), 0.55) 0%,
+      rgba(var(--card-color), 0.05) 40%,
+      rgba(var(--card-color), 0.02) 60%,
+      rgba(var(--card-color), 0.2) 100%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent,
+      rgba(var(--card-color), 0.7) 30%,
+      rgba(255,255,255, 0.9) 50%,
+      rgba(var(--card-color), 0.7) 70%,
+      transparent
+    );
+    border-radius: 50%;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .card-glow {
+    position: absolute;
+    top: -40%; left: -20%;
+    width: 140%; height: 140%;
+    background: radial-gradient(circle at 70% 30%, rgba(var(--card-color), calc(var(--glow-str) * 1.5)), transparent 60%);
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(30px);
+    border-radius: inherit;
+  }
+  .card-content {
+    position: relative; z-index: 3;
+    display: flex; flex-direction: column;
+    height: 100%; gap: 0;
+  }
+  .card-green  { --card-color: 0,245,139; }
+  .card-red    { --card-color: 255,59,94; }
+  .card-blue   { --card-color: 59,130,246; }
+  .card-purple { --card-color: 168,85,247; }
+  .card-amber  { --card-color: 245,158,11; }
+  .card-dark   { --card-color: 255,143,143; }
+
+  .icon-wrap {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 20px;
+    background: rgba(var(--card-color), 0.08);
+    border: 1px solid rgba(var(--card-color), 0.2);
+    box-shadow: inset 0 0 12px rgba(var(--card-color), 0.1);
+    backdrop-filter: blur(10px);
+  }
+  .icon-wrap svg { width: 22px; height: 22px; }
+
+  .card-label {
+    font-size: 10.5px; font-weight: 700;
+    letter-spacing: 1.8px; text-transform: uppercase;
+    color: rgba(var(--card-color), 1);
+    margin-bottom: 8px; filter: brightness(1.3);
+  }
+  .card-amount {
+    font-family: var(--mono);
+    font-size: 32px; font-weight: 700;
+    letter-spacing: -1px; color: #fff;
+    margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(var(--card-color), 0.4);
+  }
+  .card-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 6px;
+    font-size: 11px; font-weight: 500;
+    color: rgba(var(--card-color), 1);
+    background: rgba(var(--card-color), 0.08);
+    border: 1px solid rgba(var(--card-color), 0.2);
+    align-self: flex-start; margin-bottom: 20px;
+    filter: brightness(1.2);
+  }
+  .chart-wrap {
+    width: 100%; height: 62px;
+    margin-top: auto; position: relative;
+  }
+  .chart-wrap svg { width: 100%; height: 100%; overflow: visible; }
+  .sigma {
+    position: absolute; right: 18px; bottom: 14px;
+    font-size: 90px; font-family: serif;
+    color: rgba(255,255,255,0.025);
+    z-index: 0; pointer-events: none;
+    line-height: 1; user-select: none;
+  }
+</style>

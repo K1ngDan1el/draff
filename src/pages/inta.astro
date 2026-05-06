@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Liquid Glass Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #07090d;
+    --c-green: #00f58b;
+    --c-red: #ff3b5e;
+    --c-dim: #ff8f8f;
+    --c-blue: #3b82f6;
+    --c-purple: #a855f7;
+    --c-amber: #f59e0b;
+    --panel-w: 340px;
+    --bezel: 28px;
+    --glass-opacity: 0.18;
+    --blur: 22px;
+    --glow-str: 0.18;
+    --font: 'Inter', -apple-system, sans-serif;
+    --mono: 'Space Grotesk', monospace;
+  }
+
+  html, body {
+    width: 100%; min-height: 100vh;
+    background: var(--bg);
+    color: #fff;
+    font-family: var(--font);
+    overflow-x: hidden;
+  }
+
+  /* ─── ANIMATED BACKGROUND ─────────────────────────────── */
+  #bg-canvas {
+    position: fixed; inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 1;
+  }
+
+  /* ─── LAYOUT ──────────────────────────────────────────── */
+  .scene {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 24px 80px;
+    gap: 32px;
+  }
+
+  .header {
+    text-align: center;
+  }
+  .header h1 {
+    font-size: clamp(22px, 4vw, 36px);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    background: linear-gradient(135deg, #fff 30%, rgba(255,255,255,0.45));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 6px;
+    letter-spacing: 0.04em;
+  }
+
+  .dashboard {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  /* ─── GLASS CARD ──────────────────────────────────────── */
+  .card {
+    width: var(--panel-w);
+    border-radius: 22px;
+    padding: 26px;
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+    transition: transform 0.4s cubic-bezier(.23,1,.32,1);
+    --card-color: 255,255,255;
+  }
+  .card:hover { transform: translateY(-6px) scale(1.01); }
+
+  /* The real glass layer */
+  .card-glass {
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    background: rgba(var(--card-color), var(--glass-opacity));
+    backdrop-filter: blur(var(--blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+  }
+
+  /* SVG displacement filter for refraction effect */
+  .card-refract {
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    overflow: hidden;
+  }
+
+  /* Border glow */
+  .card::before {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      145deg,
+      rgba(var(--card-color), 0.55) 0%,
+      rgba(var(--card-color), 0.05) 40%,
+      rgba(var(--card-color), 0.02) 60%,
+      rgba(var(--card-color), 0.2) 100%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* Specular highlight rim */
+  .card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent,
+      rgba(var(--card-color), 0.7) 30%,
+      rgba(255,255,255,0.9) 50%,
+      rgba(var(--card-color), 0.7) 70%,
+      transparent
+    );
+    border-radius: 50%;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* Ambient color glow behind card */
+  .card-glow {
+    position: absolute;
+    top: -40%; left: -20%;
+    width: 140%; height: 140%;
+    background: radial-gradient(circle at 70% 30%, rgba(var(--card-color), calc(var(--glow-str) * 1.5)), transparent 60%);
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(30px);
+    border-radius: inherit;
+  }
+
+  .card-content {
+    position: relative; z-index: 3;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 0;
+  }
+
+  .card-green { --card-color: 0,245,139; }
+  .card-red   { --card-color: 255,59,94; }
+  .card-blue  { --card-color: 59,130,246; }
+  .card-purple { --card-color: 168,85,247; }
+  .card-amber { --card-color: 245,158,11; }
+  .card-dark  { --card-color: 255,143,143; }
+
+  /* ─── CARD CONTENT STYLES ─────────────────────────────── */
+  .icon-wrap {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 20px;
+    background: rgba(var(--card-color), 0.08);
+    border: 1px solid rgba(var(--card-color), 0.2);
+    box-shadow: inset 0 0 12px rgba(var(--card-color), 0.1);
+    backdrop-filter: blur(10px);
+  }
+  .icon-wrap svg { width: 22px; height: 22px; }
+
+  .card-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: rgba(var(--card-color), 1);
+    margin-bottom: 8px;
+    filter: brightness(1.3);
+  }
+
+  .card-amount {
+    font-family: var(--mono);
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    color: #fff;
+    margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(var(--card-color), 0.4);
+  }
+
+  .card-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(var(--card-color), 1);
+    background: rgba(var(--card-color), 0.08);
+    border: 1px solid rgba(var(--card-color), 0.2);
+    align-self: flex-start;
+    margin-bottom: 20px;
+    filter: brightness(1.2);
+  }
+
+  .chart-wrap {
+    width: 100%; height: 62px;
+    margin-top: auto;
+    position: relative;
+  }
+  .chart-wrap svg {
+    width: 100%; height: 100%;
+    overflow: visible;
+  }
+
+  /* Σ watermark */
+  .sigma {
+    position: absolute; right: 18px; bottom: 14px;
+    font-size: 90px; font-family: serif;
+    color: rgba(255,255,255,0.025);
+    z-index: 0; pointer-events: none;
+    line-height: 1;
+    user-select: none;
+  }
+
+  /* ─── EDIT PANEL ──────────────────────────────────────── */
+  #editor-toggle {
+    position: fixed;
+    bottom: 28px; right: 28px;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(20px);
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 0 0 rgba(255,255,255,0);
+  }
+  #editor-toggle:hover {
+    background: rgba(255,255,255,0.18);
+    box-shadow: 0 0 30px rgba(255,255,255,0.1);
+  }
+  #editor-toggle.active {
+    background: rgba(255,255,255,0.2);
+    transform: rotate(45deg);
+  }
+
+  #editor-panel {
+    position: fixed;
+    bottom: 90px; right: 28px;
+    width: 320px;
+    max-height: 75vh;
+    overflow-y: auto;
+    border-radius: 20px;
+    background: rgba(12, 15, 20, 0.85);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.15),
+      0 30px 60px rgba(0,0,0,0.7);
+    z-index: 99;
+    padding: 0;
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.35s cubic-bezier(.23,1,.32,1);
+  }
+  #editor-panel.open {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* scrollbar */
+  #editor-panel::-webkit-scrollbar { width: 4px; }
+  #editor-panel::-webkit-scrollbar-track { background: transparent; }
+  #editor-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+  .editor-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .editor-header span { color: rgba(255,255,255,0.9); font-size: 14px; letter-spacing: 0; text-transform: none; }
+
+  .editor-section {
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .editor-section:last-child { border-bottom: none; }
+
+  .section-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 12px;
+  }
+
+  .field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 12px;
+  }
+  .field:last-child { margin-bottom: 0; }
+
+  .field-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 90px;
+  }
+
+  .field input[type="text"],
+  .field input[type="number"] {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 6px 10px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input[type="text"]:focus,
+  .field input[type="number"]:focus {
+    border-color: rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.08);
+  }
+
+  .field input[type="range"] {
+    width: 100%;
+    height: 3px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    outline: none;
+  }
+  .field input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(255,255,255,0.3);
+  }
+
+  .field-val {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    min-width: 36px;
+    text-align: right;
+  }
+
+  .color-swatch {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.15);
+    cursor: pointer;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .color-swatch input[type="color"] {
+    width: 44px; height: 44px;
+    border: none; outline: none;
+    cursor: pointer;
+    transform: translate(-8px, -8px);
+    opacity: 0.01;
+  }
+
+  /* card selector tabs */
+  .card-tabs {
+    display: flex; gap: 4px; flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .ctab {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.4);
+    transition: all 0.2s;
+  }
+  .ctab.active {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  /* preset buttons */
+  .presets { display: flex; gap: 6px; flex-wrap: wrap; }
+  .preset-btn {
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.6);
+    transition: all 0.2s;
+  }
+  .preset-btn:hover {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+  }
+
+  /* toggle switch */
+  .toggle {
+    position: relative;
+    width: 36px; height: 20px;
+    flex-shrink: 0;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    left: 2px; top: 2px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+  .toggle input:checked + .toggle-slider { background: rgba(0,245,139,0.35); border-color: rgba(0,245,139,0.4); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(16px); background: #00f58b; }
+
+  /* ─── SVG DEFS ─────────────────────────────────────────── */
+  .global-defs { position: absolute; width: 0; height: 0; }
+</style>
+</head>
+<body>
+
+<!-- Global SVG Filters -->
+<svg class="global-defs" aria-hidden="true">
+  <defs>
+    <filter id="glow-g" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-r" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-b" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glass-refract" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" seed="2" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<!-- Animated background canvas -->
+<canvas id="bg-canvas"></canvas>
+
+<div class="scene">
+  <div class="header">
+    <h1>Trading Dashboard</h1>
+    <p>ANÁLISIS DE RENDIMIENTO · Q4 2024</p>
+  </div>
+
+  <div class="dashboard" id="dashboard">
+
+    <!-- CARD 1: GANANCIAS -->
+    <div class="card card-green" id="card-0" data-idx="0">
+      <div class="card-glass"></div>
+      <div class="card-glow"></div>
+      <div class="card-content">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="rgb(0,245,139)" stroke-width="2">
+            <path d="M22 7L13.5 15.5L8.5 10.5L2 17" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="16 7 22 7 22 13" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="card-label" id="label-0">GANANCIAS</div>
+        <div class="card-amount" id="amount-0">$41,225.00</div>
+        <div class="card-badge" id="badge-0">41 operaciones</div>
+        <div class="chart-wrap">
+          <svg viewBox="0 0 300 62" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="fade-g" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="rgb(0,245,139)" stop-opacity="0.2"/>
+                <stop offset="100%" stop-color="rgb(0,245,139)" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0 50 L20 48 L40 50 L60 45 L80 48 L100 35 L120 45 L140 38 L160 42 L180 35 L200 38 L220 35 L240 25 L260 28 L280 15 L300 5 L300 62 L0 62 Z" fill="url(#fade-g)" stroke="none"/>
+            <path id="path-0" d="M0 50 L20 48 L40 50 L60 45 L80 48 L100 35 L120 45 L140 38 L160 42 L180 35 L200 38 L220 35 L240 25 L260 28 L280 15 L300 5" fill="none" stroke="rgb(0,245,139)" stroke-width="2" filter="url(#glow-g)"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2: PÉRDIDAS -->
+    <div class="card card-red" id="card-1" data-idx="1">
+      <div class="card-glass"></div>
+      <div class="card-glow"></div>
+      <div class="card-content">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="rgb(255,59,94)" stroke-width="2">
+            <path d="M22 17L13.5 8.5L8.5 13.5L2 7" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="16 17 22 17 22 11" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="card-label" id="label-1">PÉRDIDAS</div>
+        <div class="card-amount" id="amount-1">$60,273.00</div>
+        <div class="card-badge" id="badge-1">599 operaciones</div>
+        <div class="chart-wrap">
+          <svg viewBox="0 0 300 62" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="fade-r" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="rgb(255,59,94)" stop-opacity="0.18"/>
+                <stop offset="100%" stop-color="rgb(255,59,94)" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0 45 L20 45 L40 48 L60 47 L80 47 L100 48 L120 40 L140 45 L160 35 L180 38 L200 28 L220 32 L240 5 L260 20 L280 35 L300 45 L300 62 L0 62 Z" fill="url(#fade-r)" stroke="none"/>
+            <path id="path-1" d="M0 45 L20 45 L40 48 L60 47 L80 47 L100 48 L120 40 L140 45 L160 35 L180 38 L200 28 L220 32 L240 5 L260 20 L280 35 L300 45" fill="none" stroke="rgb(255,59,94)" stroke-width="2" filter="url(#glow-r)"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 3: PROFIT NETO -->
+    <div class="card card-dark" id="card-2" data-idx="2">
+      <div class="card-glass"></div>
+      <div class="card-glow"></div>
+      <div class="sigma">Σ</div>
+      <div class="card-content">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="rgb(255,143,143)" stroke-width="2">
+            <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/>
+            <path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/>
+            <path d="M18 12a2 2 0 0 0-2 2 2 2 0 0 0 2 2h2v-4h-2z"/>
+          </svg>
+        </div>
+        <div class="card-label" id="label-2">PROFIT NETO</div>
+        <div class="card-amount" id="amount-2">-$19,048.00</div>
+        <div class="card-badge" id="badge-2">negativo</div>
+        <div class="chart-wrap">
+          <svg viewBox="0 0 300 62" preserveAspectRatio="none">
+            <path id="path-2" d="M0 40 L40 40 L80 38 L120 42 L160 45 L200 48 L240 50 L300 55" fill="none" stroke="rgb(255,143,143)" stroke-width="1.5" stroke-opacity="0.7"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Optional extra cards added by editor -->
+  <div class="dashboard" id="extra-dashboard" style="justify-content: center;"></div>
+
+</div>
+
+<!-- Editor toggle button -->
+<button id="editor-toggle" title="Abrir editor">✦</button>
+
+<!-- Editor panel -->
+<div id="editor-panel">
+  <div class="editor-header">
+    <div>EDITOR</div>
+    <span>Liquid Glass</span>
+  </div>
+
+  <!-- GLASS SETTINGS -->
+  <div class="editor-section">
+    <div class="section-title">Efecto Glass</div>
+
+    <div class="field">
+      <span class="field-label">Opacidad</span>
+      <input type="range" min="0.04" max="0.6" step="0.01" value="0.18" id="ctrl-opacity" oninput="updateGlass()">
+      <span class="field-val" id="val-opacity">0.18</span>
+    </div>
+    <div class="field">
+      <span class="field-label">Blur (px)</span>
+      <input type="range" min="4" max="50" step="1" value="22" id="ctrl-blur" oninput="updateGlass()">
+      <span class="field-val" id="val-blur">22</span>
+    </div>
+    <div class="field">
+      <span class="field-label">Glow intens.</span>
+      <input type="range" min="0" max="0.6" step="0.01" value="0.18" id="ctrl-glow" oninput="updateGlass()">
+      <span class="field-val" id="val-glow">0.18</span>
+    </div>
+    <div class="field">
+      <span class="field-label">Border radius</span>
+      <input type="range" min="8" max="36" step="1" value="22" id="ctrl-radius" oninput="updateGlass()">
+      <span class="field-val" id="val-radius">22</span>
+    </div>
+  </div>
+
+  <!-- BACKGROUND -->
+  <div class="editor-section">
+    <div class="section-title">Fondo Animado</div>
+    <div class="field">
+      <span class="field-label">Velocidad</span>
+      <input type="range" min="0.1" max="3" step="0.1" value="1" id="ctrl-speed" oninput="updateBg()">
+      <span class="field-val" id="val-speed">1.0</span>
+    </div>
+    <div class="field">
+      <span class="field-label">Intensidad</span>
+      <input type="range" min="0.1" max="1" step="0.05" value="0.55" id="ctrl-bgint" oninput="updateBg()">
+      <span class="field-val" id="val-bgint">0.55</span>
+    </div>
+    <div class="field">
+      <span class="field-label">Escala ruido</span>
+      <input type="range" min="100" max="600" step="10" value="280" id="ctrl-bgscale" oninput="updateBg()">
+      <span class="field-val" id="val-bgscale">280</span>
+    </div>
+
+    <div class="section-title" style="margin-top:12px;">Tema de fondo</div>
+    <div class="presets" id="bg-presets">
+      <button class="preset-btn" onclick="setBgTheme('dark')">Dark</button>
+      <button class="preset-btn" onclick="setBgTheme('aurora')">Aurora</button>
+      <button class="preset-btn" onclick="setBgTheme('ocean')">Océano</button>
+      <button class="preset-btn" onclick="setBgTheme('ember')">Ember</button>
+      <button class="preset-btn" onclick="setBgTheme('void')">Void</button>
+    </div>
+  </div>
+
+  <!-- CARD EDITOR -->
+  <div class="editor-section">
+    <div class="section-title">Tarjeta</div>
+    <div class="card-tabs" id="card-tabs">
+      <div class="ctab active" onclick="selectCard(0)">Ganancias</div>
+      <div class="ctab" onclick="selectCard(1)">Pérdidas</div>
+      <div class="ctab" onclick="selectCard(2)">Profit</div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Título</span>
+      <input type="text" id="ctrl-title" value="GANANCIAS" oninput="updateCard()">
+    </div>
+    <div class="field">
+      <span class="field-label">Monto</span>
+      <input type="text" id="ctrl-amount" value="$41,225.00" oninput="updateCard()">
+    </div>
+    <div class="field">
+      <span class="field-label">Badge</span>
+      <input type="text" id="ctrl-badge" value="41 operaciones" oninput="updateCard()">
+    </div>
+    <div class="field">
+      <span class="field-label">Color</span>
+      <div class="presets">
+        <button class="preset-btn" onclick="setCardColor(selectedCard,'green')">Verde</button>
+        <button class="preset-btn" onclick="setCardColor(selectedCard,'red')">Rojo</button>
+        <button class="preset-btn" onclick="setCardColor(selectedCard,'blue')">Azul</button>
+        <button class="preset-btn" onclick="setCardColor(selectedCard,'purple')">Púrpura</button>
+        <button class="preset-btn" onclick="setCardColor(selectedCard,'amber')">Ámbar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAYOUT -->
+  <div class="editor-section">
+    <div class="section-title">Layout</div>
+    <div class="field">
+      <span class="field-label">Ancho tarjeta</span>
+      <input type="range" min="240" max="440" step="10" value="340" id="ctrl-cardw" oninput="updateLayout()">
+      <span class="field-val" id="val-cardw">340</span>
+    </div>
+    <div class="field">
+      <span class="field-label">Gap</span>
+      <input type="range" min="8" max="40" step="2" value="20" id="ctrl-gap" oninput="updateLayout()">
+      <span class="field-val" id="val-gap">20</span>
+    </div>
+
+    <div class="section-title" style="margin-top: 12px;">Presets glass</div>
+    <div class="presets">
+      <button class="preset-btn" onclick="applyGlassPreset('frosted')">Frosted</button>
+      <button class="preset-btn" onclick="applyGlassPreset('dark')">Dark</button>
+      <button class="preset-btn" onclick="applyGlassPreset('ultra')">Ultra</button>
+      <button class="preset-btn" onclick="applyGlassPreset('minimal')">Minimal</button>
+    </div>
+  </div>
+
+  <!-- ACTION BUTTONS -->
+  <div class="editor-section" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
+    <div class="presets" style="gap: 8px;">
+      <button class="preset-btn" style="flex: 1; background: rgba(0,245,139,0.15); border-color: rgba(0,245,139,0.3); color: #00f58b;" onclick="applyAllChanges()">✓ Aplicar Todo</button>
+      <button class="preset-btn" style="flex: 1;" onclick="resetChanges()">⟲ Resetear</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// @ts-nocheck
+// ─── PERLIN-LIKE BACKGROUND NOISE (pure JS, no canvas libs) ──────────────────
+const cvs = document.getElementById('bg-canvas');
+const ctx = cvs.getContext('2d');
+
+let bgCfg = {
+  speed: 1,
+  intensity: 0.55,
+  scale: 280,
+  theme: 'dark'
+};
+
+const themes = {
+  dark:   { bg: '#07090d', colors: ['#001a40','#0d001a','#001410','#0d0d00','#07090d'] },
+  aurora: { bg: '#030810', colors: ['#003355','#00442a','#1a0044','#002233','#000d22'] },
+  ocean:  { bg: '#020810', colors: ['#001633','#002244','#003333','#001122','#020810'] },
+  ember:  { bg: '#0d0500', colors: ['#2a0800','#1a0a00','#2a0000','#0f0a00','#0d0500'] },
+  void:   { bg: '#050005', colors: ['#0a0015','#00050a','#100008','#05000f','#050005'] }
+};
+
+function resizeBg() {
+  cvs.width  = window.innerWidth;
+  cvs.height = window.innerHeight;
+}
+resizeBg();
+window.addEventListener('resize', resizeBg);
+
+// Simple value noise
+function hash(x, y) {
+  let n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+  return n - Math.floor(n);
+}
+function smoothstep(t) { return t*t*(3-2*t); }
+function vnoise(x, y) {
+  let ix = Math.floor(x), iy = Math.floor(y);
+  let fx = x - ix, fy = y - iy;
+  let a = hash(ix,iy), b = hash(ix+1,iy), c = hash(ix,iy+1), d = hash(ix+1,iy+1);
+  let ux = smoothstep(fx), uy = smoothstep(fy);
+  return a + (b-a)*ux + (c-a)*uy + (a-b-c+d)*ux*uy;
+}
+function fbm(x, y, oct) {
+  let v=0, amp=0.5, freq=1, max=0;
+  for(let i=0;i<oct;i++) { v+=amp*vnoise(x*freq, y*freq); max+=amp; amp*=0.5; freq*=2; }
+  return v/max;
+}
+
+let t = 0;
+function drawBg() {
+  const W = cvs.width, H = cvs.height;
+  const theme = themes[bgCfg.theme];
+  const sc = bgCfg.scale;
+  const inten = bgCfg.intensity;
+
+  // Clear
+  ctx.fillStyle = theme.bg;
+  ctx.fillRect(0,0,W,H);
+
+  // Draw animated orbs
+  const orbs = [
+    { x: 0.3 + 0.2*Math.sin(t*0.4),    y: 0.2 + 0.15*Math.cos(t*0.5),   r: 0.4, ci: 0 },
+    { x: 0.7 + 0.15*Math.cos(t*0.3),   y: 0.6 + 0.2*Math.sin(t*0.35),   r: 0.35, ci: 1 },
+    { x: 0.5 + 0.25*Math.sin(t*0.55),  y: 0.8 + 0.1*Math.cos(t*0.7),    r: 0.3, ci: 2 },
+    { x: 0.1 + 0.1*Math.cos(t*0.45),   y: 0.5 + 0.25*Math.sin(t*0.4),   r: 0.25, ci: 3 },
+    { x: 0.85 + 0.1*Math.sin(t*0.6),   y: 0.2 + 0.2*Math.cos(t*0.35),   r: 0.28, ci: 4 },
+  ];
+
+  for(const o of orbs) {
+    const gx = o.x * W, gy = o.y * H;
+    const gr = Math.min(W,H) * o.r * inten * 1.4;
+    const g = ctx.createRadialGradient(gx,gy,0, gx,gy,gr);
+    const col = theme.colors[o.ci % theme.colors.length];
+    g.addColorStop(0, col + 'cc');
+    g.addColorStop(0.5, col + '55');
+    g.addColorStop(1, col + '00');
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,W,H);
+  }
+
+  // Noise overlay
+  const step = 6;
+  for(let y=0; y<H; y+=step) {
+    for(let x=0; x<W; x+=step) {
+      const n = fbm(x/sc + t*0.08, y/sc + t*0.06, 4);
+      const a = (n - 0.45) * inten * 0.25;
+      if(a > 0.008) {
+        ctx.fillStyle = `rgba(255,255,255,${Math.min(a, 0.035)})`;
+        ctx.fillRect(x,y,step,step);
+      }
+    }
+  }
+
+  // Scanlines subtle
+  for(let y=0; y<H; y+=2) {
+    ctx.fillStyle = 'rgba(0,0,0,0.04)';
+    ctx.fillRect(0, y, W, 1);
+  }
+
+  t += 0.004 * bgCfg.speed;
+  requestAnimationFrame(drawBg);
+}
+drawBg();
+
+// ─── EDITOR LOGIC ──────────────────────────────────────────────────────────────
+const toggle = document.getElementById('editor-toggle');
+const panel  = document.getElementById('editor-panel');
+
+if(toggle && panel) {
+  toggle.addEventListener('click', () => {
+    toggle.classList.toggle('active');
+    panel.classList.toggle('open');
+  });
+}
+
+function updateGlass() {
+  const op = parseFloat(document.getElementById('ctrl-opacity').value);
+  const bl = parseInt(document.getElementById('ctrl-blur').value);
+  const gl = parseFloat(document.getElementById('ctrl-glow').value);
+  const rr = parseInt(document.getElementById('ctrl-radius').value);
+
+  const valOpacity = document.getElementById('val-opacity');
+  if(valOpacity) valOpacity.textContent = op.toFixed(2);
+  const valBlur = document.getElementById('val-blur');
+  if(valBlur) valBlur.textContent = bl.toString();
+  const valGlow = document.getElementById('val-glow');
+  if(valGlow) valGlow.textContent = gl.toFixed(2);
+  const valRadius = document.getElementById('val-radius');
+  if(valRadius) valRadius.textContent = rr.toString();
+
+  const root = document.documentElement;
+  root.style.setProperty('--glass-opacity', op.toString());
+  root.style.setProperty('--blur', bl + 'px');
+  root.style.setProperty('--glow-str', gl.toString());
+
+  document.querySelectorAll('.card').forEach(c => {
+    c.style.borderRadius = rr + 'px';
+  });
+}
+
+function updateBg() {
+  bgCfg.speed   = parseFloat(document.getElementById('ctrl-speed').value);
+  bgCfg.intensity = parseFloat(document.getElementById('ctrl-bgint').value);
+  bgCfg.scale   = parseInt(document.getElementById('ctrl-bgscale').value);
+
+  const valSpeed = document.getElementById('val-speed');
+  if(valSpeed) valSpeed.textContent  = bgCfg.speed.toFixed(1);
+  const valBgint = document.getElementById('val-bgint');
+  if(valBgint) valBgint.textContent  = bgCfg.intensity.toFixed(2);
+  const valBgscale = document.getElementById('val-bgscale');
+  if(valBgscale) valBgscale.textContent = bgCfg.scale.toString();
+}
+
+function setBgTheme(name) {
+  bgCfg.theme = name;
+  const theme = themes[name];
+  document.body.style.background = theme.bg;
+  document.documentElement.style.setProperty('--bg', theme.bg);
+}
+
+// Card selection
+let selectedCard = 0;
+const cardData = [
+  { title: 'GANANCIAS', amount: '$41,225.00', badge: '41 operaciones' },
+  { title: 'PÉRDIDAS',  amount: '$60,273.00', badge: '599 operaciones' },
+  { title: 'PROFIT NETO', amount: '-$19,048.00', badge: 'negativo' },
+];
+const colorMap = {
+  green:  { cls: 'card-green', rgb: '0,245,139' },
+  red:    { cls: 'card-red',   rgb: '255,59,94' },
+  blue:   { cls: 'card-blue',  rgb: '59,130,246' },
+  purple: { cls: 'card-purple',rgb: '168,85,247' },
+  amber:  { cls: 'card-amber', rgb: '245,158,11' },
+  dark:   { cls: 'card-dark',  rgb: '255,143,143' },
+};
+const cardColors = ['green','red','dark'];
+
+function selectCard(idx) {
+  selectedCard = idx;
+  document.querySelectorAll('.ctab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  const d = cardData[idx];
+  const titleEl = document.getElementById('ctrl-title');
+  const amountEl = document.getElementById('ctrl-amount');
+  const badgeEl = document.getElementById('ctrl-badge');
+  
+  if(titleEl) titleEl.value = d.title;
+  if(amountEl) amountEl.value = d.amount;
+  if(badgeEl) badgeEl.value = d.badge;
+  
+  console.log('Tarjeta seleccionada:', idx, d);
+}
+
+function updateCard() {
+  const idx = selectedCard;
+  const titleEl = document.getElementById('ctrl-title');
+  const amountEl = document.getElementById('ctrl-amount');
+  const badgeEl = document.getElementById('ctrl-badge');
+  
+  if(titleEl) cardData[idx].title = titleEl.value;
+  if(amountEl) cardData[idx].amount = amountEl.value;
+  if(badgeEl) cardData[idx].badge = badgeEl.value;
+
+  const label  = document.getElementById('label-' + idx);
+  const amount = document.getElementById('amount-' + idx);
+  const badge  = document.getElementById('badge-' + idx);
+  if(label)  label.textContent  = cardData[idx].title;
+  if(amount) amount.textContent = cardData[idx].amount;
+  if(badge)  badge.textContent  = cardData[idx].badge;
+  
+  console.log('Tarjeta actualizada:', cardData[idx]);
+}
+
+function setCardColor(idx, colorName) {
+  const card = document.getElementById('card-' + idx);
+  if(!card) return;
+  const prevColor = cardColors[idx];
+  cardColors[idx] = colorName;
+  const info = colorMap[colorName];
+  const prev = colorMap[prevColor];
+  if(prev) card.classList.remove(prev.cls);
+  card.classList.add(info.cls);
+  // update icon/stroke color
+  const svgStrokes = card.querySelectorAll('svg [stroke]');
+  svgStrokes.forEach(el => {
+    if(el.getAttribute('stroke').startsWith('rgb')) {
+      el.setAttribute('stroke', 'rgb(' + info.rgb + ')');
+    }
+  });
+}
+
+function applyGlassPreset(name) {
+  const presets = {
+    frosted: { opacity: 0.25, blur: 28, glow: 0.15, radius: 24 },
+    dark:    { opacity: 0.08, blur: 16, glow: 0.22, radius: 18 },
+    ultra:   { opacity: 0.35, blur: 40, glow: 0.28, radius: 28 },
+    minimal: { opacity: 0.06, blur: 10, glow: 0.08, radius: 14 },
+  };
+  const p = presets[name];
+  if(!p) return;
+  document.getElementById('ctrl-opacity').value = p.opacity;
+  document.getElementById('ctrl-blur').value    = p.blur;
+  document.getElementById('ctrl-glow').value    = p.glow;
+  document.getElementById('ctrl-radius').value  = p.radius;
+  updateGlass();
+}
+
+function updateLayout() {
+  const w   = parseInt(document.getElementById('ctrl-cardw').value);
+  const gap = parseInt(document.getElementById('ctrl-gap').value);
+  const valCardw = document.getElementById('val-cardw');
+  if(valCardw) valCardw.textContent = w.toString();
+  const valGap = document.getElementById('val-gap');
+  if(valGap) valGap.textContent   = gap.toString();
+  document.documentElement.style.setProperty('--panel-w', w + 'px');
+  document.querySelectorAll('.dashboard').forEach(d => d.style.gap = gap + 'px');
+}
+
+// ─── CHART HOVER INTERACTION ───────────────────────────────────────────────────
+document.querySelectorAll('.card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top)  / rect.height - 0.5;
+    const glassEl = card.querySelector('.card-glass');
+    if(glassEl) glassEl.style.background =
+      `radial-gradient(circle at ${50+x*80}% ${50+y*80}%, ` +
+      `rgba(var(--card-color), ${parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--glass-opacity'))*1.6}), ` +
+      `rgba(var(--card-color), ${parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--glass-opacity'))}) 60%)`;
+  });
+  card.addEventListener('mouseleave', e => {
+    const glassEl = card.querySelector('.card-glass');
+    if(glassEl) glassEl.style.background = '';
+  });
+});
+
+// ─── APPLY ALL CHANGES ────────────────────────────────────────────────────────
+function applyAllChanges() {
+  updateGlass();
+  updateBg();
+  updateCard();
+  updateLayout();
+  alert('✓ Todos los cambios aplicados correctamente');
+}
+
+function resetChanges() {
+  document.getElementById('ctrl-opacity').value = '0.18';
+  document.getElementById('ctrl-blur').value = '22';
+  document.getElementById('ctrl-glow').value = '0.18';
+  document.getElementById('ctrl-radius').value = '22';
+  document.getElementById('ctrl-speed').value = '1';
+  document.getElementById('ctrl-bgint').value = '0.55';
+  document.getElementById('ctrl-bgscale').value = '280';
+  document.getElementById('ctrl-cardw').value = '340';
+  document.getElementById('ctrl-gap').value = '20';
+  selectCard(0);
+  applyAllChanges();
+}
+
+// ─── INITIALIZE ON PAGE LOAD ──────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  selectCard(0);
+  updateGlass();
+  updateBg();
+  updateLayout();
+});
+</script>
+</body>
+</html>
