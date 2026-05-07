@@ -541,8 +541,10 @@ tr:hover td {
 /* ── Nav Link (FRONT button) ── */
 .insta {
   position: fixed;
-  bottom: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   right: 24px;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
   z-index: 50;
   padding: 12px 22px;
   border-radius: 14px;
