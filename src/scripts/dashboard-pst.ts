@@ -51,23 +51,22 @@ function handleFile(file: File | undefined) {
       
       const btnSave = document.getElementById('btnSaveCloud');
       if (btnSave) {
-        btnSave.style.display = 'block';
+        btnSave.style.display = 'inline-flex';
         btnSave.onclick = async () => {
-          btnSave.textContent = 'Guardando...';
+          const spanSave = btnSave.querySelector('span') || btnSave;
+          spanSave.textContent = 'Guardando...';
           try {
             await setDoc(doc(db, "mis_datos", "apuestas"), {
               ganancias: ganancias,
               perdidas: perdidas,
               updatedAt: new Date().toISOString()
             });
-            btnSave.textContent = '✓ Guardado en la Nube';
-            btnSave.style.background = 'rgba(0,245,139,0.15)';
-            btnSave.style.borderColor = 'rgba(0,245,139,0.3)';
-            btnSave.style.color = '#00f58b';
+            spanSave.textContent = '✓ Guardado en la Nube';
+            btnSave.className = 'glass-btn btn-green';
             setTimeout(() => { btnSave.style.display = 'none'; }, 3000);
           } catch (error) {
             console.error("Error saving:", error);
-            btnSave.textContent = '❌ Error al guardar';
+            spanSave.textContent = '❌ Error al guardar';
           }
         };
       }
@@ -80,8 +79,9 @@ function handleFile(file: File | undefined) {
 const btnLoad = document.getElementById('btnLoadCloud');
 if (btnLoad) {
   btnLoad.onclick = async () => {
-    const originalText = btnLoad.textContent;
-    btnLoad.textContent = '⏳ Cargando...';
+    const spanLoad = btnLoad.querySelector('span') || btnLoad;
+    const originalText = spanLoad.textContent || 'Cargar Nube';
+    spanLoad.textContent = '⏳ Cargando...';
     try {
       const docSnap = await getDoc(doc(db, "mis_datos", "apuestas"));
       if (docSnap.exists()) {
@@ -91,19 +91,19 @@ if (btnLoad) {
           perdidas = data.perdidas;
           setStatus(`✓ Datos cargados de la nube (${ganancias.length + perdidas.length} registros)`);
           updateDashboard();
-          btnLoad.textContent = '✓ Cargado exitosamente';
-          setTimeout(() => { btnLoad.textContent = originalText; }, 3000);
+          spanLoad.textContent = '✓ Cargado exitosamente';
+          setTimeout(() => { spanLoad.textContent = originalText; }, 3000);
         }
       } else {
         setStatus('No se encontraron datos en la nube.');
-        btnLoad.textContent = '❌ Sin datos';
-        setTimeout(() => { btnLoad.textContent = originalText; }, 3000);
+        spanLoad.textContent = '❌ Sin datos';
+        setTimeout(() => { spanLoad.textContent = originalText; }, 3000);
       }
     } catch(e) {
       console.error("Error fetching firebase data", e);
       setStatus('Error al conectar con la nube.');
-      btnLoad.textContent = '❌ Error';
-      setTimeout(() => { btnLoad.textContent = originalText; }, 3000);
+      spanLoad.textContent = '❌ Error';
+      setTimeout(() => { spanLoad.textContent = originalText; }, 3000);
     }
   };
 }

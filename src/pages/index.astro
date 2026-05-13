@@ -46,12 +46,14 @@ import PSTBackground from '../components/PSTBackground.astro';
   <header>
     <h1>Dashboard <span>PST</span></h1>
     <p id="headerSub">Pérdidas y Ganancias · sube un archivo para comenzar</p>
-    <div style="display:flex; justify-content:center; gap: 12px; align-items:center;">
-      <button id="btnLoadCloud" class="preset-btn" style="margin-top: 16px; padding: 10px 20px; font-size: 13px; background: rgba(168,85,247,0.15); border-color: rgba(168,85,247,0.3); color: #a855f7; box-shadow: 0 0 20px rgba(168,85,247,0.1);">
-        ⬇️ Cargar de la Nube
+    <div style="display:flex; justify-content:center; gap: 16px; align-items:center; margin-top: 20px;">
+      <button id="btnLoadCloud" class="glass-btn btn-purple">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        <span>Cargar Nube</span>
       </button>
-      <button id="btnSaveCloud" class="preset-btn" style="display:none; margin-top: 16px; padding: 10px 20px; font-size: 13px; background: rgba(0,229,255,0.15); border-color: rgba(0,229,255,0.3); color: #00e5ff; box-shadow: 0 0 20px rgba(0,229,255,0.1);">
-        ☁️ Guardar en la Nube
+      <button id="btnSaveCloud" class="glass-btn btn-cyan" style="display:none;">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+        <span>Guardar Nube</span>
       </button>
     </div>
   </header>

@@ -724,3 +724,76 @@ tr:hover {
 .chart-panel:hover canvas {
   filter: drop-shadow(0 0 14px rgba(0,229,255,0.1));
 }
+
+/* ── Glass Buttons ── */
+.glass-btn {
+  position: relative;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  color: #fff;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(.23,1,.32,1);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.glass-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(255,255,255,0.02);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 0;
+}
+.glass-btn > * { position: relative; z-index: 2; }
+.glass-btn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+.glass-btn:active {
+  transform: translateY(0);
+}
+.glass-btn.btn-cyan {
+  border-color: rgba(0,229,255,0.3);
+  color: var(--cyan);
+}
+.glass-btn.btn-cyan:hover {
+  background: rgba(0,229,255,0.1);
+  border-color: rgba(0,229,255,0.5);
+  box-shadow: 0 8px 25px rgba(0,229,255,0.2);
+}
+.glass-btn.btn-purple {
+  border-color: rgba(168,85,247,0.3);
+  color: #a855f7;
+}
+.glass-btn.btn-purple:hover {
+  background: rgba(168,85,247,0.1);
+  border-color: rgba(168,85,247,0.5);
+  box-shadow: 0 8px 25px rgba(168,85,247,0.2);
+}
+.glass-btn.btn-green {
+  border-color: rgba(0,245,139,0.3);
+  color: var(--green);
+}
+.glass-btn.btn-green:hover {
+  background: rgba(0,245,139,0.1);
+  border-color: rgba(0,245,139,0.5);
+  box-shadow: 0 8px 25px rgba(0,245,139,0.2);
+}
+.glass-btn svg {
+  width: 16px;
+  height: 16px;
+}
