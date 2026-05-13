@@ -46,9 +46,14 @@ import PSTBackground from '../components/PSTBackground.astro';
   <header>
     <h1>Dashboard <span>PST</span></h1>
     <p id="headerSub">Pérdidas y Ganancias · sube un archivo para comenzar</p>
-    <button id="btnSaveCloud" class="preset-btn" style="display:none; margin: 16px auto 0; padding: 10px 20px; font-size: 13px; background: rgba(0,229,255,0.15); border-color: rgba(0,229,255,0.3); color: #00e5ff; box-shadow: 0 0 20px rgba(0,229,255,0.1);">
-      ☁️ Guardar en la Nube
-    </button>
+    <div style="display:flex; justify-content:center; gap: 12px; align-items:center;">
+      <button id="btnLoadCloud" class="preset-btn" style="margin-top: 16px; padding: 10px 20px; font-size: 13px; background: rgba(168,85,247,0.15); border-color: rgba(168,85,247,0.3); color: #a855f7; box-shadow: 0 0 20px rgba(168,85,247,0.1);">
+        ⬇️ Cargar de la Nube
+      </button>
+      <button id="btnSaveCloud" class="preset-btn" style="display:none; margin-top: 16px; padding: 10px 20px; font-size: 13px; background: rgba(0,229,255,0.15); border-color: rgba(0,229,255,0.3); color: #00e5ff; box-shadow: 0 0 20px rgba(0,229,255,0.1);">
+        ☁️ Guardar en la Nube
+      </button>
+    </div>
   </header>
 
   <div class="wrap">

@@ -76,28 +76,37 @@ function handleFile(file: File | undefined) {
   reader.readAsArrayBuffer(file);
 }
 
-// Auto-load from Firebase on startup
-async function loadFromFirebase() {
-  setStatus('Conectando a la nube...');
-  try {
-    const docSnap = await getDoc(doc(db, "mis_datos", "apuestas"));
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      if (data.ganancias && data.perdidas) {
-        ganancias = data.ganancias;
-        perdidas = data.perdidas;
-        setStatus(`✓ Datos cargados de la nube (${ganancias.length + perdidas.length} registros)`);
-        updateDashboard();
+// Load from Firebase on button click
+const btnLoad = document.getElementById('btnLoadCloud');
+if (btnLoad) {
+  btnLoad.onclick = async () => {
+    const originalText = btnLoad.textContent;
+    btnLoad.textContent = '⏳ Cargando...';
+    try {
+      const docSnap = await getDoc(doc(db, "mis_datos", "apuestas"));
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.ganancias && data.perdidas) {
+          ganancias = data.ganancias;
+          perdidas = data.perdidas;
+          setStatus(`✓ Datos cargados de la nube (${ganancias.length + perdidas.length} registros)`);
+          updateDashboard();
+          btnLoad.textContent = '✓ Cargado exitosamente';
+          setTimeout(() => { btnLoad.textContent = originalText; }, 3000);
+        }
+      } else {
+        setStatus('No se encontraron datos en la nube.');
+        btnLoad.textContent = '❌ Sin datos';
+        setTimeout(() => { btnLoad.textContent = originalText; }, 3000);
       }
-    } else {
-      setStatus('');
+    } catch(e) {
+      console.error("Error fetching firebase data", e);
+      setStatus('Error al conectar con la nube.');
+      btnLoad.textContent = '❌ Error';
+      setTimeout(() => { btnLoad.textContent = originalText; }, 3000);
     }
-  } catch(e) {
-    console.error("Error fetching firebase data", e);
-    setStatus('');
-  }
+  };
 }
-loadFromFirebase();
 const fmt = (n: number) => '$'+n.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});
 const sum = (a: number[]) => a.reduce((x,y)=>x+y,0);
 const avg = (a: number[]) => a.length ? sum(a)/a.length : 0;
