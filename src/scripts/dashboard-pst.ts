@@ -1,3 +1,19 @@
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD9YseEJbs-p_XhA9-_hYlT0sQOh5NwFj4",
+  authDomain: "appuestas-ee414.firebaseapp.com",
+  projectId: "appuestas-ee414",
+  storageBucket: "appuestas-ee414.firebasestorage.app",
+  messagingSenderId: "29812166017",
+  appId: "1:29812166017:web:9d77a12138245c87486c80",
+  measurementId: "G-NG7FP59CPT"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 let perdidas: number[] = [], ganancias: number[] = [], charts: Record<string, any> = {};
 const uploadZone = document.getElementById('uploadZone') as HTMLElement;
 const fileInput  = document.getElementById('fileInput') as HTMLInputElement;
@@ -32,10 +48,56 @@ function handleFile(file: File | undefined) {
       perdidas=newP; ganancias=newG;
       setStatus(`✓ ${file.name} · ${rows.length} filas · pérd: "${colP}" · gan: "${colG}"`);
       updateDashboard();
+      
+      const btnSave = document.getElementById('btnSaveCloud');
+      if (btnSave) {
+        btnSave.style.display = 'block';
+        btnSave.onclick = async () => {
+          btnSave.textContent = 'Guardando...';
+          try {
+            await setDoc(doc(db, "mis_datos", "apuestas"), {
+              ganancias: ganancias,
+              perdidas: perdidas,
+              updatedAt: new Date().toISOString()
+            });
+            btnSave.textContent = '✓ Guardado en la Nube';
+            btnSave.style.background = 'rgba(0,245,139,0.15)';
+            btnSave.style.borderColor = 'rgba(0,245,139,0.3)';
+            btnSave.style.color = '#00f58b';
+            setTimeout(() => { btnSave.style.display = 'none'; }, 3000);
+          } catch (error) {
+            console.error("Error saving:", error);
+            btnSave.textContent = '❌ Error al guardar';
+          }
+        };
+      }
     } catch(err: unknown) { setStatus('Error: '+(err instanceof Error ? err.message : 'desconocido'), true); }
   };
   reader.readAsArrayBuffer(file);
 }
+
+// Auto-load from Firebase on startup
+async function loadFromFirebase() {
+  setStatus('Conectando a la nube...');
+  try {
+    const docSnap = await getDoc(doc(db, "mis_datos", "apuestas"));
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data.ganancias && data.perdidas) {
+        ganancias = data.ganancias;
+        perdidas = data.perdidas;
+        setStatus(`✓ Datos cargados de la nube (${ganancias.length + perdidas.length} registros)`);
+        updateDashboard();
+      }
+    } else {
+      setStatus('');
+    }
+  } catch(e) {
+    console.error("Error fetching firebase data", e);
+    setStatus('');
+  }
+}
+loadFromFirebase();
 const fmt = (n: number) => '$'+n.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});
 const sum = (a: number[]) => a.reduce((x,y)=>x+y,0);
 const avg = (a: number[]) => a.length ? sum(a)/a.length : 0;
