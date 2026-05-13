@@ -144,6 +144,7 @@ function updateDashboard() {
     perdidas:  { amount: fmt(totalP), badge: `${perdidas.length} operaciones` },
     neto:      { amount: (neto>=0?'+':'')+fmt(neto), badge: neto>=0?'positivo':'negativo' }
   }));
+  sessionStorage.setItem('rawData', JSON.stringify({ ganancias, perdidas }));
 
   // ── Animated count-ups (NO blur — simple opacity+y only) ──
   const elG = document.getElementById('kpiGanancias')!;
@@ -299,5 +300,24 @@ document.querySelectorAll('.chart-tab').forEach((tab: Element)=>{
     },50);
   });
 });
+
+// Auto-restore from session if navigating back from trading page
+const storedRaw = sessionStorage.getItem('rawData');
+if (storedRaw) {
+  try {
+    const raw = JSON.parse(storedRaw);
+    if (raw.ganancias && raw.perdidas && (raw.ganancias.length > 0 || raw.perdidas.length > 0)) {
+      ganancias = raw.ganancias;
+      perdidas = raw.perdidas;
+      updateDashboard();
+      
+      const btnSave = document.getElementById('btnSaveCloud');
+      if (btnSave) {
+        btnSave.style.display = 'inline-flex';
+        btnSave.className = 'glass-btn btn-cyan';
+      }
+    }
+  } catch(e){}
+}
 
 export {};
