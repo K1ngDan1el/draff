@@ -1,46 +1,46 @@
-# Astro Starter Kit: Basics
+# Teal Tower Analytics 📊
 
-```sh
-npm create astro@latest -- --template basics
-```
+A high-performance, modern data visualization dashboard built with Astro, TypeScript, and Firebase. 
+Teal Tower is designed to process and analyze local Excel/CSV datasets instantly, offering seamless cloud synchronization and beautiful "Liquid Glass" UI aesthetics.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## ✨ Features
 
-## 🚀 Project Structure
+- **Blazing Fast Processing:** Client-side parsing of Excel and CSV files.
+- **Liquid Glass UI:** Modern glassmorphism design with hardware-accelerated animations and premium styling.
+- **Data Visualization:** Interactive charts, accumulation graphs, and distribution stats.
+- **Cloud Sync:** Persistent state synchronization across devices using Firebase Firestore.
+- **Fully Responsive:** Optimized for both desktop and mobile accessibility with native touch-scrolling.
 
-Inside of your Astro project, you'll see the following folders and files:
+## 🛠️ Tech Stack
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
-```
+- **Framework:** [Astro](https://astro.build/)
+- **Language:** TypeScript
+- **Styling:** Custom Vanilla CSS (Liquid Glass Aesthetics)
+- **Database:** Firebase Firestore
+- **Charts:** Chart.js
+- **File Parsing:** SheetJS (xlsx)
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+## 🚀 Getting Started
 
-## 🧞 Commands
+### Prerequisites
+Make sure you have Node.js version 18+ installed.
 
-All commands are run from the root of the project, from a terminal:
+### Installation
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Set up your environment variables. Create a `.env` file in the root directory:
+   ```env
+   PUBLIC_FIREBASE_API_KEY="your-api-key"
+   ```
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-## 👀 Want to learn more?
+## 📜 License
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+This project is licensed under the MIT License.
