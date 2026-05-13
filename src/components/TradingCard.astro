@@ -76,10 +76,17 @@ const {
     position: relative;
     overflow: hidden;
     cursor: default;
-    transition: transform 0.4s cubic-bezier(.23,1,.32,1);
+    transition: transform 0.5s cubic-bezier(.23,1,.32,1), box-shadow 0.5s ease;
     --card-color: 255,255,255;
+    will-change: transform;
   }
-  .card:hover { transform: translateY(-6px) scale(1.01); }
+  .card:hover {
+    box-shadow: 0 24px 60px rgba(var(--card-color), 0.1), 0 0 0 1px rgba(var(--card-color), 0.1);
+  }
+  .card:active {
+    transform: translateY(-2px) scale(0.98) !important;
+    transition-duration: 0.1s;
+  }
 
   .card-glass {
     position: absolute; inset: 0;
@@ -153,8 +160,15 @@ const {
     border: 1px solid rgba(var(--card-color), 0.2);
     box-shadow: inset 0 0 12px rgba(var(--card-color), 0.1);
     backdrop-filter: blur(10px);
+    transition: transform 0.4s cubic-bezier(.23,1,.32,1), box-shadow 0.4s, background 0.3s;
   }
-  .icon-wrap svg { width: 22px; height: 22px; }
+  .card:hover .icon-wrap {
+    transform: scale(1.08) rotate(-3deg);
+    box-shadow: inset 0 0 18px rgba(var(--card-color), 0.15), 0 4px 16px rgba(var(--card-color), 0.12);
+    background: rgba(var(--card-color), 0.12);
+  }
+  .icon-wrap svg { width: 22px; height: 22px; transition: filter 0.3s; }
+  .card:hover .icon-wrap svg { filter: drop-shadow(0 0 6px rgba(var(--card-color), 0.5)); }
 
   .card-label {
     font-size: 10.5px; font-weight: 700;
@@ -168,6 +182,10 @@ const {
     letter-spacing: -1px; color: #fff;
     margin-bottom: 10px;
     text-shadow: 0 0 20px rgba(var(--card-color), 0.4);
+    transition: text-shadow 0.4s ease, transform 0.3s;
+  }
+  .card:hover .card-amount {
+    text-shadow: 0 0 30px rgba(var(--card-color), 0.6);
   }
   .card-badge {
     display: inline-flex; align-items: center; gap: 5px;
@@ -178,6 +196,12 @@ const {
     border: 1px solid rgba(var(--card-color), 0.2);
     align-self: flex-start; margin-bottom: 20px;
     filter: brightness(1.2);
+    transition: background 0.3s, border-color 0.3s, transform 0.3s;
+  }
+  .card:hover .card-badge {
+    background: rgba(var(--card-color), 0.12);
+    border-color: rgba(var(--card-color), 0.3);
+    transform: translateX(4px);
   }
   .chart-wrap {
     width: 100%; height: 62px;

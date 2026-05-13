@@ -25,76 +25,75 @@
   window.addEventListener('resize', resizeBg);
 
   let t = 0;
+  let lastFrame = 0;
 
-  function drawBg() {
-    const W = cvs.width, H = cvs.height;
-
-    ctx.clearRect(0, 0, W, H);
-
-    // Subtle grid
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
-    ctx.lineWidth = 1;
-    const stepX = 60;
-    const stepY = 60;
-    
+  function drawWave(
+    yBase: number, color: string, fillColor: string,
+    speed: number, amplitude: number, freq: number, phase: number,
+    W: number, H: number
+  ) {
     ctx.beginPath();
-    // vertical moving grid (scrolls to the left to simulate time moving forward)
-    for (let x = W - ((t * 20) % stepX); x > 0; x -= stepX) {
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, H);
+    ctx.moveTo(0, H);
+
+    // Smooth flowing curves — wide sine waves, not sharp zigzags
+    for (let x = 0; x <= W; x += 3) {
+      const y = yBase
+        + Math.sin(x * freq + t * speed + phase) * amplitude
+        + Math.sin(x * freq * 0.4 + t * speed * 0.6 + 2) * (amplitude * 0.6)
+        + Math.sin(x * freq * 0.15 - t * speed * 0.3 + 4) * (amplitude * 0.3);
+      ctx.lineTo(x, y);
     }
-    // horizontal static grid
-    for (let y = 0; y < H; y += stepY) {
-      ctx.moveTo(0, y);
-      ctx.lineTo(W, y);
+
+    // Close to bottom for fill
+    ctx.lineTo(W, H);
+    ctx.closePath();
+
+    // Gradient fill under curve
+    const grad = ctx.createLinearGradient(0, yBase - amplitude, 0, H);
+    grad.addColorStop(0, fillColor);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Stroke the wave line
+    ctx.beginPath();
+    for (let x = 0; x <= W; x += 3) {
+      const y = yBase
+        + Math.sin(x * freq + t * speed + phase) * amplitude
+        + Math.sin(x * freq * 0.4 + t * speed * 0.6 + 2) * (amplitude * 0.6)
+        + Math.sin(x * freq * 0.15 - t * speed * 0.3 + 4) * (amplitude * 0.3);
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
     }
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
     ctx.stroke();
-
-    // Abstract trading lines
-    const drawLine = (color: string, fillBaseColor: string, yOffset: number, speed: number, amplitude: number, freq: number, phase: number) => {
-      ctx.beginPath();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      
-      for (let x = 0; x <= W; x += 5) {
-        // Pseudo-random walk using sine waves
-        const y = yOffset 
-          + Math.sin(x * freq + t * speed + phase) * amplitude 
-          + Math.sin(x * freq * 2.1 + t * speed * 1.3) * (amplitude * 0.5)
-          + Math.sin(x * freq * 0.5 - t * speed * 0.7) * (amplitude * 0.8);
-        
-        if (x === 0) {
-          ctx.moveTo(x, y);
-        } else {
-          ctx.lineTo(x, y);
-        }
-      }
-      ctx.stroke();
-
-      // Fill under the line
-      ctx.lineTo(W, H);
-      ctx.lineTo(0, H);
-      ctx.closePath();
-      const grad = ctx.createLinearGradient(0, yOffset - amplitude * 2, 0, H);
-      grad.addColorStop(0, fillBaseColor.replace(')', ', 0.12)').replace('rgb', 'rgba'));
-      grad.addColorStop(1, fillBaseColor.replace(')', ', 0)').replace('rgb', 'rgba'));
-      
-      ctx.fillStyle = grad;
-      ctx.fill();
-    };
-
-    // Green line (Ganancias)
-    drawLine('rgba(0, 245, 139, 0.5)', 'rgb(0, 245, 139)', H * 0.35, 1.2, H * 0.08, 0.003, 0);
-    
-    // Red line (Pérdidas)
-    drawLine('rgba(255, 59, 94, 0.4)', 'rgb(255, 59, 94)', H * 0.65, 1.5, H * 0.1, 0.002, 10);
-    
-    // Cyan line (Neto / Evolución)
-    drawLine('rgba(0, 229, 255, 0.3)', 'rgb(0, 229, 255)', H * 0.5, 0.8, H * 0.12, 0.0015, 5);
-
-    t += 0.02;
-    requestAnimationFrame(drawBg);
   }
 
-  drawBg();
+  function draw(now: number) {
+    requestAnimationFrame(draw);
+    if (document.hidden) return;
+    if (now - lastFrame < 33) return;
+    lastFrame = now;
+
+    const W = cvs.width, H = cvs.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // 4 layered flowing waves — slow, wide, organic
+    drawWave(H * 0.45, 'rgba(0,229,255,0.25)', 'rgba(0,229,255,0.04)',
+      0.4, H * 0.06, 0.0012, 0, W, H);
+
+    drawWave(H * 0.55, 'rgba(0,245,139,0.3)', 'rgba(0,245,139,0.05)',
+      0.55, H * 0.07, 0.001, 2, W, H);
+
+    drawWave(H * 0.65, 'rgba(168,85,247,0.2)', 'rgba(168,85,247,0.03)',
+      0.35, H * 0.05, 0.0015, 4, W, H);
+
+    drawWave(H * 0.75, 'rgba(255,59,94,0.15)', 'rgba(255,59,94,0.025)',
+      0.3, H * 0.04, 0.0018, 6, W, H);
+
+    t += 0.015;
+  }
+
+  requestAnimationFrame(draw);
 </script>

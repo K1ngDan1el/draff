@@ -119,7 +119,7 @@
     <div class="section-title">Dashboard</div>
     <div class="field">
       <span class="field-label">Título</span>
-      <input type="text" id="ctrl-dash-title" value="Trading Dashboard" />
+      <input type="text" id="ctrl-dash-title" value="Apuestas Dashboard" />
     </div>
     <div class="field">
       <span class="field-label">Subtítulo</span>
@@ -167,11 +167,8 @@
   }
   #editor-toggle:hover {
     background: rgba(255,255,255,0.18);
-    box-shadow: 0 0 30px rgba(255,255,255,0.1);
-  }
-  #editor-toggle.active {
-    background: rgba(255,255,255,0.2);
-    transform: rotate(45deg);
+    box-shadow: 0 0 30px rgba(255,255,255,0.1), 0 0 60px rgba(0,229,255,0.05);
+    transform: scale(1.08);
   }
   #editor-panel {
     position: fixed;
@@ -186,11 +183,16 @@
     z-index: 99; padding: 0;
     transform: translateY(20px) scale(0.95);
     opacity: 0; pointer-events: none;
-    transition: all 0.35s cubic-bezier(.23,1,.32,1);
+    transition: all 0.45s cubic-bezier(.34,1.56,.64,1);
   }
   #editor-panel.open {
     transform: translateY(0) scale(1);
     opacity: 1; pointer-events: all;
+  }
+  #editor-toggle.active {
+    background: rgba(255,255,255,0.2);
+    transform: rotate(45deg);
+    box-shadow: 0 0 20px rgba(0,229,255,0.15);
   }
   #editor-panel::-webkit-scrollbar { width: 4px; }
   #editor-panel::-webkit-scrollbar-track { background: transparent; }
@@ -266,9 +268,18 @@
     font-size: 11px; font-weight: 600; cursor: pointer;
     border: 1px solid rgba(255,255,255,0.08);
     background: rgba(255,255,255,0.05);
-    color: rgba(255,255,255,0.6); transition: all 0.2s;
+    color: rgba(255,255,255,0.6); transition: all 0.3s cubic-bezier(.23,1,.32,1);
   }
-  .preset-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .preset-btn:hover {
+    background: rgba(255,255,255,0.14);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+  .preset-btn:active {
+    transform: translateY(0) scale(0.96);
+    transition-duration: 0.08s;
+  }
 
   .export-btn {
     background: rgba(255,255,255,0.07) !important;

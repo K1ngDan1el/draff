@@ -1,3 +1,5 @@
+@import '../styles/animations.css';
+
 .scene {
   position: relative; z-index: 1;
   min-height: 100vh;
@@ -6,7 +8,10 @@
   padding: 40px 24px 80px;
   gap: 32px;
 }
-.header { text-align: center; }
+.header {
+  text-align: center;
+  animation: heroReveal 1s cubic-bezier(.23,1,.32,1) 0.1s both;
+}
 .header h1 {
   font-size: clamp(22px, 4vw, 36px);
   font-weight: 700; letter-spacing: -0.04em;
@@ -18,11 +23,13 @@
 .header p {
   font-size: 13px; color: rgba(255,255,255,0.4);
   margin-top: 6px; letter-spacing: 0.04em;
+  animation: countUp 0.6s cubic-bezier(.23,1,.32,1) 0.4s both;
 }
 .dashboard {
   display: flex; gap: 20px;
   flex-wrap: wrap; justify-content: center;
   align-items: flex-start;
+  perspective: 1200px;
 }
 .home {
   position: fixed; 
@@ -32,11 +39,21 @@
   transform: translateZ(0);
   font-size: 14px; color: rgba(255,255,255,0.6);
   text-decoration: none; z-index: 10;
-  padding: 4px 8px; border-radius: 4px;
-  background-color: rgba(0,0,0,0.3);
-  transition: background-color 0.3s, color 0.3s;
+  padding: 8px 16px; border-radius: 10px;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.4s cubic-bezier(.23,1,.32,1);
+  animation: slideReveal 0.6s cubic-bezier(.23,1,.32,1) 0.8s both;
 }
 .home:hover {
   background-color: rgba(0,0,0,0.6);
   color: rgba(255,255,255,0.9);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  border-color: rgba(255,255,255,0.15);
+}
+.home:active {
+  transform: scale(0.95);
+  transition-duration: 0.1s;
 }

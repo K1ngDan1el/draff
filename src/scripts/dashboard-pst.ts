@@ -25,9 +25,9 @@ function handleFile(file: File | undefined) {
       const newP: number[]=[], newG: number[]=[];
       rows.forEach((row: any) => {
         const p = parseFloat(String(row[colP!]??'').replace(/[$,]/g,''));
-        const g = parseFloat(String(row[colG!]??'').replace(/[$,]/g,''));
+        const gg = parseFloat(String(row[colG!]??'').replace(/[$,]/g,''));
         if (!isNaN(p) && p>0) newP.push(p);
-        if (!isNaN(g) && g>0) newG.push(g);
+        if (!isNaN(gg) && gg>0) newG.push(gg);
       });
       perdidas=newP; ganancias=newG;
       setStatus(`✓ ${file.name} · ${rows.length} filas · pérd: "${colP}" · gan: "${colG}"`);
@@ -39,38 +39,113 @@ function handleFile(file: File | undefined) {
 const fmt = (n: number) => '$'+n.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});
 const sum = (a: number[]) => a.reduce((x,y)=>x+y,0);
 const avg = (a: number[]) => a.length ? sum(a)/a.length : 0;
-const max = (a: number[]) => a.length ? Math.max(...a) : 0;
+const mxv = (a: number[]) => a.length ? Math.max(...a) : 0;
+
 function updateDashboard() {
   const totalG=sum(ganancias), totalP=sum(perdidas), neto=totalG-totalP;
+  const netoAbs = Math.abs(neto);
+  const g = (window as any).gsap;
+
+  // ── Helper: GSAP count-up (uses Math.round during anim for performance) ──
+  function countTo(el: HTMLElement, target: number, prefix: string, dur: number) {
+    if (!g) { el.textContent = prefix + target.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}); return; }
+    const obj = { v: 0 };
+    g.to(obj, {
+      v: target, duration: dur, ease: 'power2.out',
+      onUpdate: () => { el.textContent = prefix + Math.round(obj.v).toLocaleString('es-MX'); },
+      onComplete: () => { el.textContent = prefix + target.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+    });
+  }
+
+  // ── Set ALL text instantly (non-numeric) ──
   (document.getElementById('headerSub') as HTMLElement)!.textContent=`Pérdidas y Ganancias · ${perdidas.length+ganancias.length} movimientos`;
-  (document.getElementById('kpiGanancias') as HTMLElement)!.textContent=fmt(totalG);
   (document.getElementById('kpiGananciasOps') as HTMLElement)!.textContent=`${ganancias.length} operaciones`;
-  (document.getElementById('kpiPerdidas') as HTMLElement)!.textContent=fmt(totalP);
   (document.getElementById('kpiPerdidasOps') as HTMLElement)!.textContent=`${perdidas.length} operaciones`;
-  (document.getElementById('kpiNeto') as HTMLElement)!.textContent=(neto>=0?'+':'')+fmt(neto);
   (document.getElementById('kpiNetoSub') as HTMLElement)!.textContent=neto>=0?'positivo':'negativo';
   (document.getElementById('kpiNetCard') as HTMLElement)!.className='card '+(neto>=0?'positive':'negative');
-  (document.getElementById('statMaxG') as HTMLElement)!.textContent=fmt(max(ganancias));
-  (document.getElementById('statPromG') as HTMLElement)!.textContent=fmt(avg(ganancias));
-  (document.getElementById('statMaxP') as HTMLElement)!.textContent=fmt(max(perdidas));
-  (document.getElementById('statPromP') as HTMLElement)!.textContent=fmt(avg(perdidas));
   (document.getElementById('tableTitle') as HTMLElement)!.textContent=`Datos — ${Math.max(perdidas.length,ganancias.length)} filas`;
+
+  // ── Build data first ──
   buildTable(); buildChartLinea(); buildChartBarras(); buildChartAmbas();
-  
+
   sessionStorage.setItem('tradingData', JSON.stringify({
     ganancias: { amount: fmt(totalG), badge: `${ganancias.length} operaciones` },
     perdidas:  { amount: fmt(totalP), badge: `${perdidas.length} operaciones` },
     neto:      { amount: (neto>=0?'+':'')+fmt(neto), badge: neto>=0?'positivo':'negativo' }
   }));
+
+  // ── Animated count-ups (NO blur — simple opacity+y only) ──
+  const elG = document.getElementById('kpiGanancias')!;
+  const elP = document.getElementById('kpiPerdidas')!;
+  const elN = document.getElementById('kpiNeto')!;
+
+  if (g) {
+    g.fromTo(elG, {opacity:0,y:12}, {opacity:1,y:0, duration:0.4, delay:0.15, ease:'power2.out'});
+    g.fromTo(elP, {opacity:0,y:12}, {opacity:1,y:0, duration:0.4, delay:0.25, ease:'power2.out'});
+    g.fromTo(elN, {opacity:0,y:12}, {opacity:1,y:0, duration:0.4, delay:0.35, ease:'power2.out'});
+  }
+  setTimeout(() => countTo(elG, totalG, '$', 1.0), g ? 150 : 0);
+  setTimeout(() => countTo(elP, totalP, '$', 1.0), g ? 250 : 0);
+  setTimeout(() => countTo(elN, netoAbs, neto>=0?'+$':'-$', 1.0), g ? 350 : 0);
+
+  // ── Stats: simple opacity + count-up ──
+  const statPairs: [string, number][] = [
+    ['statMaxG', mxv(ganancias)], ['statPromG', avg(ganancias)],
+    ['statMaxP', mxv(perdidas)],  ['statPromP', avg(perdidas)]
+  ];
+  statPairs.forEach(([id, val], i) => {
+    const el = document.getElementById(id)!;
+    if (g) g.fromTo(el, {opacity:0,y:6}, {opacity:1,y:0, duration:0.3, delay:0.4+i*0.08, ease:'power2.out'});
+    setTimeout(() => countTo(el, val, '$', 0.8), g ? 400 + i * 80 : 0);
+  });
+
+  if (!g) return;
+
+  // ══ Lightweight visual animations ══
+
+  // Upload zone: quick flash
+  const uz = document.getElementById('uploadZone');
+  if (uz) {
+    g.to(uz, { boxShadow:'0 0 30px rgba(0,245,139,0.2)', duration:0.25, ease:'power2.out',
+      onComplete: () => g.to(uz, { boxShadow:'none', duration:0.5, delay:0.3 })
+    });
+  }
+
+  // Status badge
+  const stEl = document.getElementById('uploadStatus');
+  if (stEl) g.fromTo(stEl, {opacity:0,y:8}, {opacity:1,y:0, duration:0.3, delay:0.1, ease:'power2.out'});
+
+  // KPI Cards bounce
+  if ((window as any).__disableTilt) (window as any).__disableTilt();
+  g.fromTo('.kpis .card', {scale:0.92, opacity:0.4, y:12}, {
+    scale:1, opacity:1, y:0, stagger:0.1, duration:0.45, ease:'back.out(1.2)', delay:0.1,
+    onComplete: () => {
+      document.querySelectorAll<HTMLElement>('.kpis .card').forEach(c => c.style.transform = '');
+      if ((window as any).__enableTilt) (window as any).__enableTilt();
+    }
+  });
+
+  // Panels
+  g.fromTo('.panel', {opacity:0.6,y:20}, {opacity:1,y:0, stagger:0.1, duration:0.4, ease:'power2.out', delay:0.2});
+
+  // Table rows — only first 15, rest instant
+  setTimeout(() => {
+    const rows = document.querySelectorAll('#tableBody tr');
+    const limit = Math.min(rows.length, 15);
+    for (let i = 0; i < limit; i++) {
+      g.fromTo(rows[i], {opacity:0,x:-8}, {opacity:1,x:0, duration:0.2, delay:i*0.02, ease:'power2.out'});
+    }
+  }, 300);
 }
+
 function buildTable() {
   const tbody=document.getElementById('tableBody') as HTMLTableSectionElement;
   const maxLen=Math.max(perdidas.length,ganancias.length);
   let html='';
   for(let i=0;i<maxLen;i++){
     const p=perdidas[i]!=null?`<td class="val-red">${fmt(perdidas[i])}</td>`:'<td class="val-empty">—</td>';
-    const g=ganancias[i]!=null?`<td class="val-green">${fmt(ganancias[i])}</td>`:'<td class="val-empty">—</td>';
-    html+=`<tr><td class="val-empty">${i+1}</td>${p}${g}</tr>`;
+    const gg=ganancias[i]!=null?`<td class="val-green">${fmt(ganancias[i])}</td>`:'<td class="val-empty">—</td>';
+    html+=`<tr><td class="val-empty">${i+1}</td>${p}${gg}</tr>`;
   }
   tbody!.innerHTML=html;
 }

@@ -1,0 +1,79 @@
+/* ══════════════════════════════════════════════════════════
+   Advanced Animation System — Keyframes & Utility Classes
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Page Load: Cinematic Entrance ── */
+@keyframes heroReveal {
+  0%   { opacity: 0; transform: translateY(-20px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes glowPulseIn {
+  0%   { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideReveal {
+  0%   { opacity: 0; transform: translateY(40px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+
+@keyframes floatSubtle {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+
+@keyframes shimmerLine {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes countUp {
+  0%   { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  0%   { opacity: 0; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+
+@keyframes rippleOut {
+  0%   { transform: scale(0); opacity: 0.5; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+
+
+/* ── Interactive ripple on click ── */
+.ripple-container {
+  position: relative;
+  overflow: hidden;
+}
+.ripple-container .ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  pointer-events: none;
+  animation: rippleOut 0.6s ease-out forwards;
+}
+
+/* ── Smooth number transition helper ── */
+.num-transition {
+  transition: all 0.4s cubic-bezier(.23,1,.32,1);
+  display: inline-block;
+}
+
+
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
